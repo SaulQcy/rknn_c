@@ -4,15 +4,15 @@ project(test_zero_copy)
 # set absolute path, i.e., compilers and RKNN-API
 set(
     RV1106_COMPILER_PATH
-    /home/saul/RockChip/RV06_03_Linux_SDK-main/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-
+    /home/saul/code/RV06_03_Linux_SDK/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin/arm-rockchip830-linux-uclibcgnueabihf-
 )
 set(
     RKNN_API_PATH
-    /home/saul/RockChip/rknn-toolkit2-master/rknpu2/runtime/Linux/librknn_api
+    /home/saul/code/rknn-toolkit2/rknpu2/runtime/Linux/librknn_api
 )
 set(
     3RD_PARTY_PATH
-    /home/saul/RockChip/rknn-toolkit2-master/rknpu2/examples/3rdparty
+    /home/saul/code/rknn-toolkit2/rknpu2/examples/3rdparty
 )
 
 # set compilers
