@@ -109,7 +109,26 @@ int main(int argc, char *argv[]) {
     unsigned char *input_data = NULL;
     input_data = load_image(img_path, &(in_attr[0]));
     if (input_data == NULL) return -7;
-    
+    rknn_tensor_mem *input_mem[1];
+    in_attr[0].fmt = RKNN_TENSOR_NHWC;
+    in_attr[0].type = RKNN_TENSOR_UINT8;
+    input_mem[0] = rknn_create_mem(ctx, in_attr[0].size_with_stride);
 
-    return 0;
+    int h = in_attr[0].dims[1];
+    int w = in_attr[0].dims[2];
+    int c = in_attr[0].dims[3];
+    int stride = in_attr[0].w_stride;
+
+    if (w == stride) {
+      printf("width == stride\n");
+      memcpy(input_mem[0]->virt_addr, input_data, h * w * c);
+    }
+    // for (int i = 0; i < 1000; ++i) {
+    //   printf("%d ", ((uint8_t*)input_mem[0]->virt_addr)[i]);
+    // }
+    // printf("\n");
+    for (int i = 0; i < 1000; ++i) {
+        printf("%d ", ((uint8_t*)input_mem[0]->virt_addr)[i]);
+        if ((i + 1) % 20 == 0) printf("\n");
+    }
 }
