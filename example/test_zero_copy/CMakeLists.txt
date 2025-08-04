@@ -38,6 +38,7 @@ add_executable(
 include_directories(
     ${RKNN_API_PATH}/include
     ${3RD_PARTY_PATH}/stb
+    ./include
 
 )
 
