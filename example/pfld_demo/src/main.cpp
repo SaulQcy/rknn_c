@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "tools.h"
+#include <cstdint>
 
 
 
@@ -37,6 +38,8 @@ int main(int argc, char *argv[])
   printf("input num %d, output num %d. \n", io_num.n_input, io_num.n_output);
   printf("input tensor:\n");
   rknn_tensor_attr in_attr[io_num.n_input];
+  in_attr[0].fmt = RKNN_TENSOR_NHWC;
+  in_attr[0].type = RKNN_TENSOR_UINT8;
   for (int i = 0; i < io_num.n_input; i++)
   {
     in_attr[i].index = i;
@@ -45,8 +48,12 @@ int main(int argc, char *argv[])
     dump_tensor_attr(&(in_attr[i]));
   }
   printf("\n");
+
   printf("output tensor:\n");
   rknn_tensor_attr out_attr[io_num.n_output];
+  out_attr[0].type = RKNN_TENSOR_INT8;
+  // out_attr[0].type = RKNN_TENSOR_UINT8;
+
   for (int i = 0; i < io_num.n_output; i++)
   {
     out_attr[i].index = i;
@@ -61,8 +68,6 @@ int main(int argc, char *argv[])
   if (input_data == NULL)
     return -7;
   rknn_tensor_mem *input_mem[1];
-  in_attr[0].fmt = RKNN_TENSOR_NHWC;
-  in_attr[0].type = RKNN_TENSOR_UINT8;
   input_mem[0] = rknn_create_mem(ctx, in_attr[0].size_with_stride);
 
   int h = in_attr[0].dims[1];
@@ -77,12 +82,12 @@ int main(int argc, char *argv[])
   }
 
   // check the values in board end.
-  for (int i = 0; i < 1000; ++i)
-  {
-    printf("%d ", ((uint8_t *)input_mem[0]->virt_addr)[i]);
-    if ((i + 1) % 20 == 0)
-      printf("\n");
-  }
+  // for (int i = 0; i < 1000; ++i)
+  // {
+  //   printf("%d ", ((uint8_t *)input_mem[0]->virt_addr)[i]);
+  //   if ((i + 1) % 20 == 0)
+  //     printf("\n");
+  // }
 
   rknn_tensor_mem *output_mem[io_num.n_output];
   for (int i = 0; i < io_num.n_output; i++)
@@ -100,6 +105,31 @@ int main(int argc, char *argv[])
   if (rknn_run(ctx, NULL) != 0)
     return -9;
 
-  // post process
+  // postprocess
+
+  // landmark
+  float res = 0;
+  for (int i = 0; i < 38; i++) {
+    // uint8_t value = ((int8_t *)output_mem[0]->virt_addr)[i];
+    int8_t value = ((int8_t *)output_mem[0]->virt_addr)[i];
+    res = (value - out_attr[0].zp) * out_attr[0].scale;
+    printf("index: %d\t zp: %d\t scale: %.4f\t raw: %d\t val: %.4f\n", i, out_attr[0].zp, out_attr[0].scale, value, res);
+  }
+  
+  // headpose
+  for (int i = 0; i < 3; i++) {
+    int8_t value = ((int8_t *)output_mem[1]->virt_addr)[i];
+    res = (value - out_attr[1].zp) * out_attr[1].scale;
+    printf("%.2f %d\n", res, value);
+
+  }
+
+  // main  class
+  for (int i = 0; i < 4; i++) {
+    int8_t value = ((int8_t *)output_mem[2]->virt_addr)[i];
+    res = (value - out_attr[2].zp) * out_attr[2].scale;
+    printf("index: %d\t zp: %d\t scale: %.4f\t raw: %d\t val: %.4f\n", i, out_attr[2].zp, out_attr[2].scale, value, res);
+  }
+
   return 0;
 }

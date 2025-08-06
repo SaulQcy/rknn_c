@@ -30,7 +30,7 @@ set(
 file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp" "src/*.cc" "src/*.c" "include/*.h" "include/*.hpp")
 
 add_executable(
-    test_zero_copy
+    pfld_demo
     ${PROJECT_SOURCES}
 )
 
@@ -43,6 +43,6 @@ include_directories(
 )
 
 target_link_libraries(
-    test_zero_copy
+    pfld_demo
     ${RKNN_API_PATH}/armhf-uclibc/librknnmrt.so
 )
