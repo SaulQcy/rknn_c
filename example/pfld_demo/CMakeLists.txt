@@ -39,10 +39,13 @@ include_directories(
     ${RKNN_API_PATH}/include
     ${3RD_PARTY_PATH}/stb
     ./include
-
+    ${3RD_PARTY_PATH}/opencv/opencv-linux-armhf/include
 )
+
+link_directories(${3RD_PARTY_PATH}/opencv/opencv-linux-armhf/lib)
 
 target_link_libraries(
     pfld_demo
     ${RKNN_API_PATH}/armhf-uclibc/librknnmrt.so
+    ${OpenCV_LIBS}
 )

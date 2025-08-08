@@ -1,12 +1,21 @@
 #pragma once
 #include "rknn_api.h"
 #include <vector>
+#include <stdio.h>
 
+class pfld_results {
+    public:
+        std::vector<float> landmark;
+        std::vector<float> headpose;
+        std::vector<bool> main_classes;
 
-class pfld_postprocess
-{
+        void print_results();
+};
+
+class pfld_postprocess {
 public:
-    std::vector<float> extract_landmark(rknn_tensor_mem* output_mem, rknn_tensor_attr out_attr);
+    static pfld_results extract_landmark(rknn_tensor_mem **, rknn_tensor_attr *);
 
 };
+
 

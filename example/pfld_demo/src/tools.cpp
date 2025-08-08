@@ -7,17 +7,21 @@
 #include "stb_image.h"
 #include "stb_image_resize.h"
 
-tools::tools()
+void tools::dump_tensor_attr(rknn_tensor_attr *attr)
 {
-    // 构造函数可以留空，或初始化资源
+  char dims[128] = {0}; // to store the shape of input/output tensor shape, e.g., [1, 224, 224, 3] NHWC, [1, 1001]
+  for (int i = 0; i < attr->n_dims; ++i)
+  {
+    int idx = strlen(dims); // the current length of dims
+    sprintf(&dims[idx], "%d%s", attr->dims[i], (i == attr->n_dims - 1) ? "" : ", ");
+  }
+  printf("  index=%d, name=%s, n_dims=%d, dims=[%s], n_elems=%d, size=%d, fmt=%s, type=%s, qnt_type=%s, "
+         "zp=%d, scale=%f\n",
+         attr->index, attr->name, attr->n_dims, dims, attr->n_elems, attr->size, get_format_string(attr->fmt),
+         get_type_string(attr->type), get_qnt_type_string(attr->qnt_type), attr->zp, attr->scale);
 }
 
-tools::~tools()
-{
-    // 析构函数
-}
 
-// 注意：这里不要加 'static'
 unsigned char* tools::load_image(const char* image_path, rknn_tensor_attr* input_attr)
 {
     int req_height = 0;

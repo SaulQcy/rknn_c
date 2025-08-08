@@ -6,9 +6,6 @@
 
 class tools {
 public:
-    tools();
-    ~tools();
-
-    // 静态函数：加载并调整图像大小以匹配模型输入
-    static unsigned char* load_image(const char* image_path, rknn_tensor_attr* input_attr);
+    static unsigned char* load_image(const char *, rknn_tensor_attr *);
+    static void dump_tensor_attr(rknn_tensor_attr *);
 };
