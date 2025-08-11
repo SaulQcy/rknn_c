@@ -2,21 +2,65 @@
 // Created by saul on 2025/8/7.
 //
 #include <assert.h>
+#include <cstring>
 #include <iostream>
 #include <ostream>
 #include <string>
-#include "im2d_version.h"
-#include "im2d_common.h"
-#include "utils.h"
+#include "my_tools.h"
+#include "dma_alloc.h"
+#include "im2d_buffer.h"
+
 
 int main(int n_args, char **args) {
-    assert(n_args == 2);
-    char *img_path = args[1];
+    assert(n_args == 3);
+    char *model_path = args[1];
+    char *img_path = args[2];
 
-    // RGA information
-    const char *rga_info = querystring(RGA_ALL);
+    const char *rga_info = querystring(RGA_VERSION);
     printf("%s\n", rga_info);
 
+    // rknn init
+    rknn_context ctx = 0;
+    assert(rknn_init(&ctx, model_path, 0, 0, NULL) == 0);
+
+    // query model IO num
+    rknn_input_output_num io_num;
+    assert(rknn_query(ctx, RKNN_QUERY_IN_OUT_NUM, &io_num, sizeof(rknn_input_output_num)) == 0 );
+
+    // query model IO attribute
+    rknn_tensor_attr in_attr[io_num.n_input];
+    for (int i = 0; i < io_num.n_input; i++) {
+        in_attr[i].index = i;
+        assert(rknn_query(ctx, RKNN_QUERY_INPUT_ATTR, &(in_attr[i]), sizeof(rknn_tensor_attr)) == 0);
+    }
+    rknn_tensor_attr out_attr[io_num.n_output];
+    for (int i = 0; i < io_num.n_output; i++) {
+        out_attr[i].index = i;
+        assert(rknn_query(ctx, RKNN_QUERY_OUTPUT_ATTR, &(out_attr[i]), sizeof(rknn_tensor_attr)) == 0);
+    }
+
+    // DMA
+    char *img_buf;
+    int dma_fd;
+    int ret = 0;
+    int h = 640, w = 640, img_format = RK_FORMAT_BGR_888;
+    int buf_size = h * w * get_bpp_from_format(img_format);
+
+    FILE *f = fopen(img_path, "rb");
+    assert(f != NULL);
+    fread(img_buf, 1, buf_size, f);
+    fclose(f);
+
+    ret = dma_buf_alloc(RV1106_CMA_HEAP_PATH, buf_size, &dma_fd, (void **)&img_buf);
+    assert(ret == 0);
+
+
+    rknn_tensor_mem *input_mem = rknn_create_mem_from_fd(ctx, dma_fd, img_buf, in_attr->size_with_stride, 0);
+    rga_buffer_handle_t input_buffer_handle = importbuffer_fd(dma_fd, w, h, in_attr[0].size_with_stride);
+    assert(input_buffer_handle != 0);
+    rga_buffer_t input_rga_buffer = wrapbuffer_handle(input_buffer_handle, w, h, in_attr[0].size_with_stride);
+
+    assert(rknn_run(ctx, NULL) != 0);
 
 
     return 0;

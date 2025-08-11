@@ -14,10 +14,9 @@ set(
         3RD_PARTY_PATH
         /home/saul/code/rknn-toolkit2/rknpu2/examples/3rdparty
 )
-
 set(
         RGA_PATH
-        ${3RD_PARTY_PATH}/rga
+        /home/saul/code/librga
 )
 
 # set compilers
@@ -37,6 +36,8 @@ file(GLOB_RECURSE PROJECT_SOURCES "src/*.cpp" "src/*.cc" "src/*.c" "include/*.h"
 add_executable(
         test_rga
         ${PROJECT_SOURCES}
+        ${RGA_PATH}/samples/utils/utils.cpp
+        ${RGA_PATH}/samples/utils/allocator/dma_alloc.cpp
 )
 
 #include / link
@@ -45,6 +46,8 @@ include_directories(
         ${3RD_PARTY_PATH}/stb
         ./include
         ${RGA_PATH}/include
+        ${RGA_PATH}/samples/utils
+        ${RGA_PATH}/samples/utils/allocator/include
 )
 
 
