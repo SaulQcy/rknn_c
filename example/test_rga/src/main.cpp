@@ -41,7 +41,7 @@ int main(int n_args, char **args) {
 
     // DMA
     char *img_buf;
-    int dma_fd;
+    int input_dma_fd;
     int ret = 0;
     int h = 640, w = 640, img_format = RK_FORMAT_BGR_888;
     int buf_size = h * w * get_bpp_from_format(img_format);
@@ -51,16 +51,24 @@ int main(int n_args, char **args) {
     fread(img_buf, 1, buf_size, f);
     fclose(f);
 
-    ret = dma_buf_alloc(RV1106_CMA_HEAP_PATH, buf_size, &dma_fd, (void **)&img_buf);
+    ret = dma_buf_alloc(RV1106_CMA_HEAP_PATH, buf_size, &input_dma_fd, (void **)&img_buf);
     assert(ret == 0);
 
 
-    rknn_tensor_mem *input_mem = rknn_create_mem_from_fd(ctx, dma_fd, img_buf, in_attr->size_with_stride, 0);
-    rga_buffer_handle_t input_buffer_handle = importbuffer_fd(dma_fd, w, h, in_attr[0].size_with_stride);
+    rknn_tensor_mem *input_mem = rknn_create_mem_from_fd(ctx, input_dma_fd, img_buf, in_attr->size_with_stride, 0);
+    rga_buffer_handle_t input_buffer_handle = importbuffer_fd(input_dma_fd, w, h, in_attr[0].size_with_stride);
     assert(input_buffer_handle != 0);
     rga_buffer_t input_rga_buffer = wrapbuffer_handle(input_buffer_handle, w, h, in_attr[0].size_with_stride);
 
+    // set input and output mem
+    for (int i = 0; i < io_num.n_input; i++) {
+        ret = rknn_set_io_mem(ctx, &input_mem[i], &in_attr[i]);
+        assert(ret == 0);
+    }
+
     assert(rknn_run(ctx, NULL) != 0);
+
+
 
 
     return 0;
