@@ -94,27 +94,27 @@ int main(int argc, char *argv[])
   rknn_input_output_num io_num;
   if (rknn_query(ctx, RKNN_QUERY_IN_OUT_NUM, &io_num, sizeof(io_num)) != 0)
     return -4;
-  printf("input num %d, output num %d. \n", io_num.n_input, io_num.n_output);
-  printf("input tensor:\n");
+  // printf("input num %d, output num %d. \n", io_num.n_input, io_num.n_output);
+  // printf("input tensor:\n");
   rknn_tensor_attr in_attr[io_num.n_input];
   for (int i = 0; i < io_num.n_input; i++)
   {
     in_attr[i].index = i;
     if (rknn_query(ctx, RKNN_QUERY_INPUT_ATTR, &(in_attr[i]), sizeof(rknn_tensor_attr)) != 0)
       return -5;
-    dump_tensor_attr(&(in_attr[i]));
+    // dump_tensor_attr(&(in_attr[i]));
   }
-  printf("\n");
-  printf("output tensor:\n");
+  // printf("\n");
+  // printf("output tensor:\n");
   rknn_tensor_attr out_attr[io_num.n_output];
   for (int i = 0; i < io_num.n_output; i++)
   {
     out_attr[i].index = i;
     if (rknn_query(ctx, RKNN_QUERY_OUTPUT_ATTR, &(out_attr[i]), sizeof(rknn_tensor_attr)) != 0)
       return -6;
-    dump_tensor_attr(&(out_attr[i]));
+    // dump_tensor_attr(&(out_attr[i]));
   }
-  printf("\n");
+  // printf("\n");
 
   unsigned char *input_data = NULL;
   input_data = load_image(img_path, &(in_attr[0]));
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
   if (w == stride)
   {
-    printf("width == stride\n");
+    // printf("width == stride\n");
     memcpy(input_mem[0]->virt_addr, input_data, h * w * c);
   }
 
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
   for (int i = 0; i < 1000; ++i)
   {
     printf("%d ", ((uint8_t *)input_mem[0]->virt_addr)[i]);
-    if ((i + 1) % 20 == 0)
+    if ((i + 1) % 10 == 0)
       printf("\n");
   }
 
