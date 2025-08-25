@@ -31,6 +31,7 @@ int main(int n_args, char **args) {
     rknn_tensor_attr in_attr[io_num.n_input];
     for (int i = 0; i < io_num.n_input; i++) {
         in_attr[i].index = i;
+        in_attr[i].type = RKNN_TENSOR_UINT8;
         assert(rknn_query(ctx, RKNN_QUERY_INPUT_ATTR, &(in_attr[i]), sizeof(rknn_tensor_attr)) == 0);
     }
     rknn_tensor_attr out_attr[io_num.n_output];
@@ -41,23 +42,29 @@ int main(int n_args, char **args) {
 
     // DMA
     char *img_buf;
-    int input_dma_fd;
+    int input_dma_fd = -1;
     int ret = 0;
     int h = 640, w = 640, img_format = RK_FORMAT_BGR_888;
     int input_buf_size = h * w * get_bpp_from_format(img_format);
 
     FILE *f = fopen(img_path, "rb");
     assert(f != NULL);
-    fread(img_buf, 1, input_buf_size, f);
+    size_t nread = fread(img_buf, 1, input_buf_size, f);
     fclose(f);
+    printf("nread=%zu, input_buf_size=%d\n", nread, input_buf_size);
+    assert(nread == input_buf_size);
 
     ret = dma_buf_alloc(RV1106_CMA_HEAP_PATH, input_buf_size, &input_dma_fd, (void **)&img_buf);
     assert(ret == 0);
 
-    rknn_tensor_mem *input_mem = rknn_create_mem_from_fd(ctx, input_dma_fd, img_buf, in_attr->size_with_stride, 0);
-    rga_buffer_handle_t input_buffer_handle = importbuffer_fd(input_dma_fd, w, h, in_attr[0].size_with_stride);
+    // rga_buffer_handle_t input_buffer_handle = importbuffer_fd(input_dma_fd, w, h, in_attr[0].size_with_stride);
+    rga_buffer_handle_t input_buffer_handle = importbuffer_fd(input_dma_fd, input_buf_size);
     assert(input_buffer_handle != 0);
-    rga_buffer_t input_rga_buffer = wrapbuffer_handle(input_buffer_handle, w, h, in_attr[0].size_with_stride);
+    rga_buffer_t input_rga_buffer = wrapbuffer_handle(input_buffer_handle, w, h, img_format);
+
+    rknn_tensor_mem *input_mem = rknn_create_mem_from_fd(ctx, input_dma_fd, img_buf, in_attr->size_with_stride, 0);
+    assert(input_mem != NULL);
+
 
     for (int i = 0; i < io_num.n_input; i++) {
         ret = rknn_set_io_mem(ctx, &input_mem[i], &in_attr[i]);
