@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
   }
   printf("\n");
 
+  int64_t preprocess_us = tools::getCurrentTimeUs();
   unsigned char *input_data = NULL;
   input_data = tools::load_image(img_path, &(in_attr[0]));
   if (input_data == NULL)
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     printf("width == stride\n");
     memcpy(input_mem[0]->virt_addr, input_data, h * w * c);
   }
-
+  
   rknn_tensor_mem *output_mem[io_num.n_output];
   for (int i = 0; i < io_num.n_output; i++)
     output_mem[i] = rknn_create_mem(ctx, out_attr[i].size_with_stride);
@@ -80,16 +81,23 @@ int main(int argc, char *argv[])
   for (int i = 0; i < io_num.n_output; i++)
     if (rknn_set_io_mem(ctx, output_mem[i], &out_attr[i]) != 0)
       return -8;
+  preprocess_us = tools::getCurrentTimeUs() - preprocess_us;
 
   printf("\nrun\n");
-  if (rknn_run(ctx, NULL) != 0)
-    return -9;
+  int ret = 0;
+  int64_t inference_us = tools::getCurrentTimeUs();
+  ret = rknn_run(ctx, NULL);
+  inference_us = tools::getCurrentTimeUs() - inference_us;
+
+
+  printf("Preprocess Time = %.2fms, FPS = %.2f\n", preprocess_us / 1000.f, 1000.f * 1000.f / preprocess_us);
+  printf("Inference Time = %.2fms, FPS = %.2f\n", inference_us / 1000.f, 1000.f * 1000.f / inference_us);
 
   // postprocess
 
 
-  pfld_results ret = pfld_postprocess::extract_landmark(output_mem, out_attr);
-  ret.print_results();
+  // pfld_results ret = pfld_postprocess::extract_landmark(output_mem, out_attr);
+  // ret.print_results();
 
   return 0;
 }

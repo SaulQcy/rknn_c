@@ -48,6 +48,7 @@ include_directories(
         ${RGA_PATH}/include
         ${RGA_PATH}/samples/utils
         ${RGA_PATH}/samples/utils/allocator/include
+        /home/saul/code/RV06_03_Linux_SDK/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/sysroot/usr/include
 )
 
 

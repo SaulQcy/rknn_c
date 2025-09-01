@@ -6,6 +6,7 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb_image.h"
 #include "stb_image_resize.h"
+#include "sys/time.h"
 
 void tools::dump_tensor_attr(rknn_tensor_attr *attr)
 {
@@ -86,3 +87,15 @@ unsigned char* tools::load_image(const char* image_path, rknn_tensor_attr* input
 
     return image_data;
 }
+
+
+int64_t tools::getCurrentTimeUs()
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return tv.tv_sec * 1000000 + tv.tv_usec;
+}
+
+
+
+

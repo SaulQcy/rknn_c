@@ -8,5 +8,7 @@
 class my_tools {
     public:
         static void dump_tensor_attr(rknn_tensor_attr *);
-        static unsigned char *load_image(const char *, int, int, int);
+        // static unsigned char *load_image(const char *, int, int, int);
+        static unsigned char *load_image(const char *, rknn_tensor_attr *);
+        static int64_t getCurrentTimeUs();
 };

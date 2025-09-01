@@ -40,6 +40,8 @@ include_directories(
     ${3RD_PARTY_PATH}/stb
     ./include
     ${3RD_PARTY_PATH}/opencv/opencv-linux-armhf/include
+    /home/saul/code/RV06_03_Linux_SDK/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/arm-rockchip830-linux-uclibcgnueabihf/sysroot/usr/include
+
 )
 
 link_directories(${3RD_PARTY_PATH}/opencv/opencv-linux-armhf/lib)
