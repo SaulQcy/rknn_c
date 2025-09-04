@@ -121,5 +121,36 @@ int tools::NC1HWC2_i8_to_NHWC_i8(const int8_t* src, int8_t* dst, int* dims, int 
   return 0;
 }
 
+int tools::NC1HWC2_i8_to_NCHW_i8(const int8_t* src, int8_t* dst, int* dims) {
+    int batch = dims[0];   // N
+    int C1    = dims[1];   // C1
+    int H     = dims[2];   // H
+    int W     = dims[3];   // W
+    int C2    = dims[4];   // C2
+    int C     = C1 * C2;   // total channels
+
+    for (int n = 0; n < batch; n++) {
+        const int8_t* src_b = src + n * C1 * H * W * C2;
+        int8_t* dst_b = dst + n * C * H * W;
+
+        for (int c = 0; c < C; c++) {
+            int plane = c / C2;    // 第几个 C1 plane
+            int offset = c % C2;   // plane 内的偏移
+
+            const int8_t* src_plane = src_b + plane * H * W * C2;
+
+            for (int h = 0; h < H; h++) {
+                for (int w = 0; w < W; w++) {
+                    int hw = h * W + w;
+                    int src_idx = hw * C2 + offset;
+                    int dst_idx = c * H * W + h * W + w;
+                    dst_b[dst_idx] = src_plane[src_idx];
+                }
+            }
+        }
+    }
+    return 0;
+}
+
 
 

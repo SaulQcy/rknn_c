@@ -3,6 +3,48 @@
 // #include "rknn_api.h"
 #include "tools.h"
 #include "opencv2/opencv.hpp"
+#include "vector"
+
+#include <vector>
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+
+void print_topk(int8_t* data, int n, int zp, float scale, int k = 10) {
+    std::vector<float> logits(n);
+    for (int i = 0; i < n; i++) {
+        logits[i] = (data[i] - zp) * scale;
+    }
+
+    // softmax (数值稳定版)
+    float max_logit = *std::max_element(logits.begin(), logits.end());
+    std::vector<float> expv(n);
+    float sum_exp = 0.0f;
+    for (int i = 0; i < n; i++) {
+        expv[i] = std::exp(logits[i] - max_logit);
+        sum_exp += expv[i];
+    }
+    std::vector<float> probs(n);
+    for (int i = 0; i < n; i++) {
+        probs[i] = expv[i] / sum_exp;
+    }
+
+    // 索引数组
+    std::vector<int> indices(n);
+    for (int i = 0; i < n; i++) indices[i] = i;
+
+    // 按概率排序
+    std::partial_sort(indices.begin(), indices.begin() + k, indices.end(),
+                      [&](int a, int b) { return probs[a] > probs[b]; });
+
+    // 打印前 k
+    for (int i = 0; i < k; i++) {
+        int idx = indices[i];
+        printf("Index: %d, Prob: %.4f, Logit: %.4f\n", 
+               idx, probs[idx], logits[idx]);
+    }
+}
+
 
 int main(int nargs, char **vargs) {
     assert(nargs == 3);
@@ -75,9 +117,13 @@ int main(int nargs, char **vargs) {
     // inference end
 
     // postprocess
-    const int8_t *out_original = (int8_t *)output_mem[0]->virt_addr;
-    int8_t *out_analyzed;
-    tools::NC1HWC2_i8_to_NHWC_i8(out_original, out_analyzed, (int *)out_attrs[0].dims, req_c, req_h, req_w);
-    printf("hhh\n");
+    // 使用方法
+    int zp = out_attrs[0].zp;
+    float scale = out_attrs[0].scale;
+    int8_t* raw_data = (int8_t*)output_mem[0]->virt_addr;
+    print_topk(raw_data, 1000, zp, scale, 10);
+    // postprocess end
+
     return 0;
 }
+
